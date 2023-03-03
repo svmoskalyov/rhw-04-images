@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import { useState, useEffect } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import { AiOutlineDownload } from 'react-icons/ai';
 import { Box } from './Box';
@@ -15,109 +15,121 @@ const Status = {
   RESOLVED: 'resolved',
 };
 
-export class App extends Component {
-  state = {
-    request: '',
-    images: [],
-    error: null,
-    status: Status.IDLE,
-    page: 1,
-    totalPages: 1,
+export function App() {
+  const [request, setRequest] = useState('');
+  const [images, setImages] = useState([]);
+  const [status, setStatus] = useState(Status.IDLE);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+
+  const handleFormSubmit = request => {
+    setImages([]);
+    setPage(1);
+    setTotalPages(1);
+    setRequest(request);
   };
 
-  componentDidUpdate(_, prevState) {
-    const { request, page } = this.state;
-    const prevRequest = prevState.request;
-    const prevPage = prevState.page;
-    const nextRequest = request;
-    const nextPage = page;
+  // Variant-1
+  // const getSearchImage = useCallback(async () => {
+  //   try {
+  //     setStatus(Status.PENDING);
+  //     const imgs = await fetchImage(request, page);
 
-    if (prevRequest !== nextRequest) {
-      this.setState({ images: [], page: 1, totalPages: 1 });
+  //     if (imgs.total === 0) {
+  //       toast.info('No images found. Please submit another query!');
+  //       setStatus(Status.REJECTED);
+  //       return;
+  //     }
+
+  //     if (imgs.total <= 12) {
+  //       setImages(imgs.hits);
+  //       setStatus(Status.RESOLVED);
+  //     } else {
+  //       setImages(prevImage => [...prevImage, ...imgs.hits]);
+  //       setTotalPages(Math.ceil(imgs.total / 12));
+  //       setStatus(Status.RESOLVED);
+
+  //       if (page > 1) {
+  //         setTimeout(() => {
+  //           window.scrollBy({
+  //             top: 500,
+  //             behavior: 'smooth',
+  //           });
+  //         }, 500);
+  //       }
+  //     }
+  //   } catch (error) {
+  //     setStatus(Status.REJECTED);
+  //     toast.error(error.message);
+  //   }
+  // }, [page, request]);
+
+  // useEffect(() => {
+  //   if (!request) {
+  //     return;
+  //   }
+
+  //   getSearchImage();
+  // }, [getSearchImage, request]);
+
+  // Variant-2
+  useEffect(() => {
+    if (!request) {
+      return;
     }
-
-    if (prevRequest !== nextRequest || prevPage !== nextPage) {
-      this.getSearchImage();
-    }
-  }
-
-  handleFormSubmit = request => {
-    this.setState({ request });
-  };
-
-  getSearchImage = async () => {
-    const { request, page } = this.state;
-
-    try {
-      this.setState({ status: Status.PENDING });
-      const images = await fetchImage(request, page);
-
-      if (images.total === 0) {
-        toast.info('No images found. Please submit another query!');
-        this.setState({ status: Status.REJECTED });
-        return;
-      }
-
-      if (images.total <= 12) {
-        this.setState({
-          images: images.hits,
-          status: Status.RESOLVED,
-        });
-      } else {
-        this.setState(prevState => ({
-          images: [...prevState.images, ...images.hits],
-          totalPages: Math.ceil(images.total / 12),
-          status: Status.RESOLVED,
-        }));
-
-        if (page > 1) {
-          setTimeout(() => {
-            window.scrollBy({
-              top: 500,
-              behavior: 'smooth',
-            });
-          }, 500);
+    const getSearchImage = async () => {
+      try {
+        setStatus(Status.PENDING);
+        const imgs = await fetchImage(request, page);
+        if (imgs.total === 0) {
+          toast.info('No images found. Please submit another query!');
+          setStatus(Status.REJECTED);
+          return;
         }
+        if (imgs.total <= 12) {
+          setImages(imgs.hits);
+          setStatus(Status.RESOLVED);
+        } else {
+          setImages(prevImage => [...prevImage, ...imgs.hits]);
+          setTotalPages(Math.ceil(imgs.total / 12));
+          setStatus(Status.RESOLVED);
+          if (page > 1) {
+            setTimeout(() => {
+              window.scrollBy({
+                top: 500,
+                behavior: 'smooth',
+              });
+            }, 500);
+          }
+        }
+      } catch (error) {
+        setStatus(Status.REJECTED);
+        toast.error(error.message);
       }
-    } catch (error) {
-      this.setState({ error, status: Status.REJECTED });
-      toast.error(error.message);
-    }
+    };
+
+    getSearchImage();
+  }, [page, request]);
+
+  const onClickLoadMore = () => {
+    setPage(prevState => prevState + 1);
   };
 
-  onClickLoadMore = () => {
-    this.setState(prevState => ({
-      page: prevState.page + 1,
-    }));
-  };
-
-  render() {
-    const { images, status, page, totalPages } = this.state;
-
-    return (
-      <Box display="grid" gridTemplateColumns="1fr" gridGap={4} pb={5}>
-        <Searchbar onSubmit={this.handleFormSubmit} />
-
-        {images.length > 0 && <ImageGallery photos={images} />}
-
-        {status === Status.PENDING && <Loader />}
-
-        {page < totalPages && (
-          <Button
-            icon={AiOutlineDownload}
-            onClick={this.onClickLoadMore}
-            aria-label="button load more"
-          >
-            Load more
-          </Button>
-        )}
-
-        <ToastContainer
-          autoClose={3000}
-          theme="colored"
-          position="top-center"
-        />
-      </Box>
-    );
-  }
+  return (
+    <Box display="grid" gridTemplateColumns="1fr" gridGap={4} pb={5}>
+      <Searchbar onSubmit={handleFormSubmit} />
+      {images.length > 0 && <ImageGallery photos={images} />}
+      {status === Status.PENDING && <Loader />}
+      {page < totalPages && (
+        <Button
+          icon={AiOutlineDownload}
+          onClick={onClickLoadMore}
+          aria-label="button load more"
+        >
+          Load more
+        </Button>
+      )}
+      <ToastContainer autoClose={3000} theme="colored" position="top-center" />
+    </Box>
+  );
 }
