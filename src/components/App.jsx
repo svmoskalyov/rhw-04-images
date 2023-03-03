@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import { AiOutlineDownload } from 'react-icons/ai';
 import { Box } from './Box';
@@ -30,86 +30,86 @@ export function App() {
   };
 
   // Variant-1
-  // const getSearchImage = useCallback(async () => {
-  //   try {
-  //     setStatus(Status.PENDING);
-  //     const imgs = await fetchImage(request, page);
+  const getSearchImage = useCallback(async () => {
+    try {
+      setStatus(Status.PENDING);
+      const imgs = await fetchImage(request, page);
 
-  //     if (imgs.total === 0) {
-  //       toast.info('No images found. Please submit another query!');
-  //       setStatus(Status.REJECTED);
-  //       return;
-  //     }
+      if (imgs.total === 0) {
+        toast.info('No images found. Please submit another query!');
+        setStatus(Status.REJECTED);
+        return;
+      }
 
-  //     if (imgs.total <= 12) {
-  //       setImages(imgs.hits);
-  //       setStatus(Status.RESOLVED);
-  //     } else {
-  //       setImages(prevImage => [...prevImage, ...imgs.hits]);
-  //       setTotalPages(Math.ceil(imgs.total / 12));
-  //       setStatus(Status.RESOLVED);
+      if (imgs.total <= 12) {
+        setImages(imgs.hits);
+        setStatus(Status.RESOLVED);
+      } else {
+        setImages(prevImage => [...prevImage, ...imgs.hits]);
+        setTotalPages(Math.ceil(imgs.total / 12));
+        setStatus(Status.RESOLVED);
 
-  //       if (page > 1) {
-  //         setTimeout(() => {
-  //           window.scrollBy({
-  //             top: 500,
-  //             behavior: 'smooth',
-  //           });
-  //         }, 500);
-  //       }
-  //     }
-  //   } catch (error) {
-  //     setStatus(Status.REJECTED);
-  //     toast.error(error.message);
-  //   }
-  // }, [page, request]);
+        if (page > 1) {
+          setTimeout(() => {
+            window.scrollBy({
+              top: 500,
+              behavior: 'smooth',
+            });
+          }, 500);
+        }
+      }
+    } catch (error) {
+      setStatus(Status.REJECTED);
+      toast.error(error.message);
+    }
+  }, [page, request]);
 
-  // useEffect(() => {
-  //   if (!request) {
-  //     return;
-  //   }
-
-  //   getSearchImage();
-  // }, [getSearchImage, request]);
-
-  // Variant-2
   useEffect(() => {
     if (!request) {
       return;
     }
-    const getSearchImage = async () => {
-      try {
-        setStatus(Status.PENDING);
-        const imgs = await fetchImage(request, page);
-        if (imgs.total === 0) {
-          toast.info('No images found. Please submit another query!');
-          setStatus(Status.REJECTED);
-          return;
-        }
-        if (imgs.total <= 12) {
-          setImages(imgs.hits);
-          setStatus(Status.RESOLVED);
-        } else {
-          setImages(prevImage => [...prevImage, ...imgs.hits]);
-          setTotalPages(Math.ceil(imgs.total / 12));
-          setStatus(Status.RESOLVED);
-          if (page > 1) {
-            setTimeout(() => {
-              window.scrollBy({
-                top: 500,
-                behavior: 'smooth',
-              });
-            }, 500);
-          }
-        }
-      } catch (error) {
-        setStatus(Status.REJECTED);
-        toast.error(error.message);
-      }
-    };
 
     getSearchImage();
-  }, [page, request]);
+  }, [getSearchImage, request]);
+
+  // Variant-2
+  // useEffect(() => {
+  //   if (!request) {
+  //     return;
+  //   }
+  //   const getSearchImage = async () => {
+  //     try {
+  //       setStatus(Status.PENDING);
+  //       const imgs = await fetchImage(request, page);
+  //       if (imgs.total === 0) {
+  //         toast.info('No images found. Please submit another query!');
+  //         setStatus(Status.REJECTED);
+  //         return;
+  //       }
+  //       if (imgs.total <= 12) {
+  //         setImages(imgs.hits);
+  //         setStatus(Status.RESOLVED);
+  //       } else {
+  //         setImages(prevImage => [...prevImage, ...imgs.hits]);
+  //         setTotalPages(Math.ceil(imgs.total / 12));
+  //         setStatus(Status.RESOLVED);
+  //         if (page > 1) {
+  //           setTimeout(() => {
+  //             window.scrollBy({
+  //               top: 500,
+  //               behavior: 'smooth',
+  //             });
+  //           }, 500);
+  //         }
+  //       }
+  //     } catch (error) {
+  //       setStatus(Status.REJECTED);
+  //       toast.error(error.message);
+  //     }
+  //   };
+
+  //   getSearchImage();
+  // }, [page, request]);
 
   const onClickLoadMore = () => {
     setPage(prevState => prevState + 1);

@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import PropTypes from 'prop-types';
 import { Backdrop } from './Modal.styled';
@@ -12,30 +12,15 @@ export function Modal({ children, onClose }) {
     }
   };
 
-  // ESC-variant-1
-  // const handleKeyDown = useCallback(
-  //   e => {
-  //     if (e.code === 'Escape') {
-  //       onClose();
-  //     }
-  //   },
-  //   [onClose]
-  // );
-
-  // useEffect(() => {
-  //   window.addEventListener('keydown', handleKeyDown);
-
-  //   return () => {
-  //     window.removeEventListener('keydown', handleKeyDown);
-  //   };
-  // }, [handleKeyDown]);
-
-  // ESC-variant-2
-  const handleKeyDown = e => {
-    if (e.code === 'Escape') {
-      onClose();
-    }
-  };
+  // ESC-Variant-1
+  const handleKeyDown = useCallback(
+    e => {
+      if (e.code === 'Escape') {
+        onClose();
+      }
+    },
+    [onClose]
+  );
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
@@ -43,7 +28,22 @@ export function Modal({ children, onClose }) {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  });
+  }, [handleKeyDown]);
+
+  // ESC-Variant-2
+  // const handleKeyDown = e => {
+  //   if (e.code === 'Escape') {
+  //     onClose();
+  //   }
+  // };
+
+  // useEffect(() => {
+  //   window.addEventListener('keydown', handleKeyDown);
+
+  //   return () => {
+  //     window.removeEventListener('keydown', handleKeyDown);
+  //   };
+  // });
 
   return createPortal(
     <Backdrop onClick={handleBackdropClick}>{children}</Backdrop>,
