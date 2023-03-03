@@ -1,39 +1,54 @@
-import { Component } from 'react';
+import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import PropTypes from 'prop-types';
 import { Backdrop } from './Modal.styled';
 
 const modalRoot = document.querySelector('#modal-root');
 
-export class Modal extends Component {
-  componentDidMount() {
-    window.addEventListener('keydown', this.handleKeyDown);
-  }
-
-  componentWillUnmount() {
-    window.removeEventListener('keydown', this.handleKeyDown);
-  }
-
-  handleKeyDown = e => {
-    if (e.code === 'Escape') {
-      this.props.onClose();
-    }
-  };
-
-  handleBackdropClick = e => {
+export function Modal({ children, onClose }) {
+  const handleBackdropClick = e => {
     if (e.currentTarget === e.target) {
-      this.props.onClose();
+      onClose();
     }
   };
 
-  render() {
-    const { children } = this.props;
+  // ESC-variant-1
+  // const handleKeyDown = useCallback(
+  //   e => {
+  //     if (e.code === 'Escape') {
+  //       onClose();
+  //     }
+  //   },
+  //   [onClose]
+  // );
 
-    return createPortal(
-      <Backdrop onClick={this.handleBackdropClick}>{children}</Backdrop>,
-      modalRoot
-    );
-  }
+  // useEffect(() => {
+  //   window.addEventListener('keydown', handleKeyDown);
+
+  //   return () => {
+  //     window.removeEventListener('keydown', handleKeyDown);
+  //   };
+  // }, [handleKeyDown]);
+
+  // ESC-variant-2
+  const handleKeyDown = e => {
+    if (e.code === 'Escape') {
+      onClose();
+    }
+  };
+
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  });
+
+  return createPortal(
+    <Backdrop onClick={handleBackdropClick}>{children}</Backdrop>,
+    modalRoot
+  );
 }
 
 Modal.propTypes = {
